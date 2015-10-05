@@ -14,7 +14,7 @@ from pyexchange.exchange2010.soap_request import EXCHANGE_DATE_FORMAT, EXCHANGE_
 # don't remove this - a few tests import stuff this way
 from ..fixtures import *  # noqa
 
-EventFixture = namedtuple('EventFixture', ['id', 'change_key', 'calendar_id', 'subject', 'location', 'start', 'end', 'body'])
+EventFixture = namedtuple('EventFixture', ['id', 'change_key', 'calendar_id', 'subject', 'location', 'start', 'end', 'body','delegate_for'])
 RecurringEventDailyFixture = namedtuple(
   'RecurringEventDailyFixture',
   [
@@ -53,6 +53,24 @@ TEST_FOLDER = FolderFixture(
   folder_type=u'Folder',
 )
 
+RoomListFixture = namedtuple('RoomListFixture', ['name', 'email', 'routingType', 'mailboxType'])
+
+TEST_ROOM_LIST = [RoomListFixture(
+   name=u"Conference hall",
+   email=u"confHall@contoso.com",
+   routingType=u"SMTP",
+   mailboxType=u"PublicDL",
+)]
+
+RoomFixture = namedtuple('RoomFixture', ['email','name','routingType','mailboxType'])
+
+TEST_ROOM = RoomFixture(
+   name=u"Storm room",
+   email=u"storm@contoso.com",
+   routingType=u"SMTP",
+   mailboxType=u"Mailbox",
+)
+
 TEST_EVENT = EventFixture(id=u'AABBCCDDEEFF',
                           change_key=u'GGHHIIJJKKLLMM',
                           calendar_id='calendar',
@@ -60,7 +78,9 @@ TEST_EVENT = EventFixture(id=u'AABBCCDDEEFF',
                           location=u'söüth päċïfïċ (40.1°S 123.7°W)',
                           start=datetime(year=2050, month=5, day=20, hour=20, minute=42, second=50, tzinfo=utc),
                           end=datetime(year=2050, month=5, day=20, hour=21, minute=43, second=51, tzinfo=utc),
-                          body=u'rärr ï äm ä dïnösäür')
+                          body=u'rärr ï äm ä dïnösäür',
+                          delegate_for=u"storm@contoso.com",
+                          )
 
 TEST_CONFLICT_EVENT = EventFixture(
   id=u'aabbccddeeff',
@@ -71,6 +91,7 @@ TEST_CONFLICT_EVENT = EventFixture(
   start=datetime(year=2050, month=5, day=20, hour=20, minute=42, second=50, tzinfo=utc),
   end=datetime(year=2050, month=5, day=20, hour=21, minute=43, second=51, tzinfo=utc),
   body=u'rärr ï äm ä dïnösäür',
+  delegate_for=u"storm@contoso.com",
 )
 
 TEST_EVENT_LIST_START = datetime(year=2050, month=4, day=20, hour=20, minute=42, second=50)
@@ -83,7 +104,9 @@ TEST_EVENT_UPDATED = EventFixture(id=u'AABBCCDDEEFF',
                                   location=u'häppÿ fröġ länd',
                                   start=datetime(year=2040, month=4, day=19, hour=19, minute=41, second=49, tzinfo=utc),
                                   end=datetime(year=2060, month=4, day=19, hour=20, minute=42, second=50, tzinfo=utc),
-                                  body=u'śő śhíńý śő véŕý śhíńý')
+                                  body=u'śő śhíńý śő véŕý śhíńý',
+                                  delegate_for=u"storm@contoso.com",
+                                )
 
 TEST_EVENT_MOVED = EventFixture(
   id=u'AABBCCDDEEFFAABBCCDDEEFF',
@@ -94,6 +117,7 @@ TEST_EVENT_MOVED = EventFixture(
   start=datetime(year=2050, month=5, day=20, hour=20, minute=42, second=50, tzinfo=utc),
   end=datetime(year=2050, month=5, day=20, hour=21, minute=43, second=51, tzinfo=utc),
   body=u'rärr ï äm ä dïnösäür',
+  delegate_for=u"storm@contoso.com",
 )
 
 TEST_RECURRING_EVENT_DAILY = RecurringEventDailyFixture(
@@ -160,6 +184,7 @@ for day in range(20, 25):
       end=datetime(year=2050, month=5, day=day, hour=21, minute=43, second=51, tzinfo=utc),
       body=u'rärr ï äm ä dïnösäür',
       calendar_id='calendar',
+      delegate_for=u"storm@contoso.com",
     )
   )
 
@@ -1715,3 +1740,76 @@ LIST_EVENTS_RESPONSE = u"""<s:Envelope xmlns:s="http://schemas.xmlsoap.org/soap/
     </m:FindItemResponse>
   </s:Body>
 </s:Envelope>"""
+
+GET_ROOM_LIST_RESPONSE = u"""<?xml version="1.0" encoding="utf-8"?>
+  <s:Envelope xmlns:s="http://schemas.xmlsoap.org/soap/envelope/">
+    <s:Header>
+      <h:ServerVersionInfo MajorVersion="15" MinorVersion="0" MajorBuildNumber="868" MinorBuildNumber="8" Version="V2_9" 
+                           xmlns:h="http://schemas.microsoft.com/exchange/services/2006/types" 
+                           xmlns="http://schemas.microsoft.com/exchange/services/2006/types" 
+                           xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" />
+    </s:Header>
+    <s:Body xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+      <m:GetRoomListsResponse ResponseClass="Success" xmlns:m="http://schemas.microsoft.com/exchange/services/2006/messages" 
+                              xmlns:t="http://schemas.microsoft.com/exchange/services/2006/types">
+        <m:ResponseCode>NoError</m:ResponseCode>
+        <m:RoomLists>
+          <t:Address>
+            <t:Name>{roomList.name}</t:Name>
+            <t:EmailAddress>{roomList.email}</t:EmailAddress>
+            <t:RoutingType>{roomList.routingType}</t:RoutingType>
+            <t:MailboxType>{roomList.mailboxType}</t:MailboxType>
+          </t:Address>
+        </m:RoomLists>
+      </m:GetRoomListsResponse>
+    </s:Body>
+  </s:Envelope>""".format(roomList=TEST_ROOM_LIST[0])
+
+GET_ROOM_LIST_ERROR_RESPONSE = u"""<?xml version="1.0" encoding="utf-8"?>
+  <s:Envelope xmlns:s="http://schemas.xmlsoap.org/soap/envelope/">
+    <s:Header>
+      <h:ServerVersionInfo MajorVersion="14" MinorVersion="1" MajorBuildNumber="164" MinorBuildNumber="0" Version="Exchange2010_SP1" xmlns:h="http://schemas.microsoft.com/exchange/services/2006/types" xmlns="http://schemas.microsoft.com/exchange/services/2006/types" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema"/>
+    </s:Header>
+    <s:Body xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+      <GetRoomListsResponse ResponseClass="Success" xmlns="http://schemas.microsoft.com/exchange/services/2006/messages">
+        <ResponseCode>NoError</ResponseCode>
+        <m:RoomLists xmlns:m="http://schemas.microsoft.com/exchange/services/2006/messages"/>
+      </GetRoomListsResponse>
+    </s:Body>
+  </s:Envelope>"""
+
+GET_ROOMS_IN_ROOM_LIST_RESPONSE = u"""<?xml version="1.0" encoding="utf-8"?>
+<s:Envelope xmlns:s="http://schemas.xmlsoap.org/soap/envelope/">
+  <s:Header>
+    <h:ServerVersionInfo MajorVersion="14" MinorVersion="1" MajorBuildNumber="164" MinorBuildNumber="0" Version="Exchange2010_SP1" xmlns:h="http://schemas.microsoft.com/exchange/services/2006/types" xmlns="http://schemas.microsoft.com/exchange/services/2006/types" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema"/>
+  </s:Header>
+  <s:Body xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+    <GetRoomsResponse ResponseClass="Success" xmlns="http://schemas.microsoft.com/exchange/services/2006/messages">
+      <ResponseCode>NoError</ResponseCode>
+      <m:Rooms xmlns:m="http://schemas.microsoft.com/exchange/services/2006/messages">
+        <t:Room xmlns:t="http://schemas.microsoft.com/exchange/services/2006/types">
+          <t:Id>
+            <t:Name>{room.name}</t:Name>
+            <t:EmailAddress>{room.email}</t:EmailAddress>
+            <t:RoutingType>{room.routingType}</t:RoutingType>
+            <t:MailboxType>{room.mailboxType}</t:MailboxType>
+          </t:Id>
+        </t:Room>
+      </m:Rooms>
+    </GetRoomsResponse>
+  </s:Body>
+</s:Envelope>""".format(room=TEST_ROOM)
+
+GET_ROOMS_IN_ROOM_LIST_ERROR_RESPONSE = u"""<?xml version="1.0" encoding="utf-8"?>
+  <s:Envelope xmlns:s="http://schemas.xmlsoap.org/soap/envelope/">
+    <s:Header>
+      <h:ServerVersionInfo MajorVersion="14" MinorVersion="1" MajorBuildNumber="164" MinorBuildNumber="0" Version="Exchange2010_SP1" xmlns:h="http://schemas.microsoft.com/exchange/services/2006/types" xmlns="http://schemas.microsoft.com/exchange/services/2006/types" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema"/>
+    </s:Header>
+    <s:Body xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+      <GetRoomsResponse ResponseClass="Error" xmlns="http://schemas.microsoft.com/exchange/services/2006/messages">
+        <MessageText>No results were found.</MessageText>
+        <ResponseCode>ErrorNameResolutionNoResults</ResponseCode>
+        <DescriptiveLinkKey>0</DescriptiveLinkKey>
+      </GetRoomsResponse>
+    </s:Body>
+  </s:Envelope>"""

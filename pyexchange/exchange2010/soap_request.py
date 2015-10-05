@@ -30,9 +30,7 @@ DISTINGUISHED_IDS = (
 
 
 def exchange_header():
-
   return T.RequestServerVersion({u'Version': u'Exchange2010'})
-
 
 def resource_node(element, resources):
   """
@@ -114,6 +112,24 @@ def get_item(exchange_id, format=u"Default"):
       *elements
     )
   )
+  return root
+
+def get_room_lists():
+  return M.GetRoomLists()
+
+def get_rooms(roomList_email):
+  """
+  <m:GetRooms>
+    <m:RoomList>
+      <t:EmailAddress>RoomList@contoso.com</t:EmailAddress>
+    </m:RoomList>
+  </m:GetRooms>
+  """
+  root = M.GetRooms(
+          M.RoomList(
+              T.EmailAddress(roomList_email)
+          )
+        )
   return root
 
 def get_calendar_items(format=u"Default", calendar_id=u'calendar', start=None, end=None, max_entries=999999, delegate_for=None):
@@ -288,6 +304,10 @@ def new_event(event):
               xmlns:t="http://schemas.microsoft.com/exchange/services/2006/types">
     <m:SavedItemFolderId>
         <t:DistinguishedFolderId Id="calendar"/>
+          <t:Mailbox>
+            <t:EmailAddress>{{ event.delegate_for }}</t:EmailAddress>
+          </t:Mailbox>
+        </t:DistinguishedFolderId>
     </m:SavedItemFolderId>
     <m:Items>
         <t:CalendarItem>
@@ -330,7 +350,18 @@ def new_event(event):
 </m:CreateItem>
   """
 
-  id = T.DistinguishedFolderId(Id=event.calendar_id) if event.calendar_id in DISTINGUISHED_IDS else T.FolderId(Id=event.calendar_id)
+  if event.calendar_id in DISTINGUISHED_IDS:
+    try:
+      id = T.DistinguishedFolderId(
+              T.Mailbox(
+                T.EmailAddress(event.delegate_for)
+              ),
+              Id=event.calendar_id,
+            )
+    except AttributeError:
+      id = T.DistinguishedFolderId(Id=event.calendar_id)
+  else:
+    id =  T.FolderId(Id=event.calendar_id)
 
   start = convert_datetime_to_utc(event.start)
   end = convert_datetime_to_utc(event.end)

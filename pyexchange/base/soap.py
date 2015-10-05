@@ -14,9 +14,11 @@ from pytz import utc
 from ..exceptions import FailedExchangeException
 
 SOAP_NS = u'http://schemas.xmlsoap.org/soap/envelope/'
+TYPE_NS = u'http://schemas.microsoft.com/exchange/services/2006/types'
 
-SOAP_NAMESPACES = {u's': SOAP_NS}
+SOAP_NAMESPACES = {u't': TYPE_NS, u's': SOAP_NS}
 S = ElementMaker(namespace=SOAP_NS, nsmap=SOAP_NAMESPACES)
+T = ElementMaker(namespace=TYPE_NS, nsmap=SOAP_NAMESPACES)
 
 log = logging.getLogger('pyexchange')
 
@@ -65,8 +67,11 @@ class ExchangeServiceSOAP(object):
     response = self.connection.send(body, headers, retries, timeout)
     return response
 
+  def _exchange_header(self):
+    return T.RequestServerVersion({u'Version': u'Exchange2010'})
+
   def _wrap_soap_xml_request(self, exchange_xml):
-    root = S.Envelope(S.Body(exchange_xml))
+    root = S.Envelope(S.Header(self._exchange_header()), S.Body(exchange_xml))
     return root
 
   def _parse_date(self, date_string):

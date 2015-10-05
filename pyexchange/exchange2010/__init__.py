@@ -36,6 +36,9 @@ class Exchange2010Service(ExchangeServiceSOAP):
   def folder(self):
     return Exchange2010FolderService(service=self)
 
+  def rooms(self):
+    return Exchange2010RoomService(service=self)
+
   def _send_soap_request(self, body, headers=None, retries=2, timeout=30, encoding="utf-8"):
     headers = {
       "Accept": "text/xml",
@@ -79,6 +82,16 @@ class Exchange2010Service(ExchangeServiceSOAP):
       elif code.text != u"NoError":
         raise FailedExchangeException(u"Exchange Fault (%s) from Exchange server" % code.text)
 
+class Exchange2010RoomService(object):
+  def __init__(self, service):
+    self.service = service
+
+  def list_room_lists(self):
+    return Exchange2010RoomList(service=self.service)
+
+  def list_rooms(self, roomList_email):
+    return Exchange2010Rooms(service=self.service, roomList_email=roomList_email)
+
 
 class Exchange2010CalendarService(BaseExchangeCalendarService):
 
@@ -93,6 +106,90 @@ class Exchange2010CalendarService(BaseExchangeCalendarService):
 
   def list_events(self, start=None, end=None, details=False, delegate_for=None):
     return Exchange2010CalendarEventList(service=self.service, calendar_id=self.calendar_id, start=start, end=end, details=details, delegate_for=delegate_for)
+
+
+class Exchange2010RoomList(object):
+  def __init__(self, service):
+    self.service = service
+    body = soap_request.get_room_lists()
+
+    response_xml = self.service.send(body)
+
+    self.roomLists = self._parse_all_roomLists(response_xml)
+    log.debug("Parsed room lists %s" % self.roomLists)
+
+    return
+
+  def _parse_all_roomLists(self, response):
+    roomListsDict = list()
+    roomLists = response.xpath(u'//m:RoomLists/t:Address', namespaces=soap_request.NAMESPACES)
+    self.count = len(roomLists)
+    log.debug(u'Found %s room lists' % self.count)
+
+    for room in roomLists:
+      roomListsDict.append(self._parse_roomList_properties(room))
+
+    return roomListsDict
+
+  def _parse_roomList_properties(self, response):
+    property_map = {
+      u'name': {
+        u'xpath': u't:Name',
+      },
+      u'email':
+      {
+        u'xpath': u't:EmailAddress',
+      },
+      u'routingType': {
+        u'xpath': u't:RoutingType',
+      },
+      u'mailboxType': {
+        u'xpath': u't:MailboxType',
+      },
+    }
+    return self.service._xpath_to_dict(element=response, property_map=property_map, namespace_map=soap_request.NAMESPACES)
+
+
+class Exchange2010Rooms(object):
+  def __init__(self, service, roomList_email):
+    self.service = service
+    body = soap_request.get_rooms(roomList_email)
+    log.debug("Searching rooms in %s list" % roomList_email)
+    response_xml = self.service.send(body)
+
+    self.rooms = self._parse_all_rooms(response_xml)
+
+    return
+
+  def _parse_all_rooms(self, response):
+    roomsDict = list()
+    rooms = response.xpath(u'//m:Rooms/t:Room', namespaces=soap_request.NAMESPACES)
+    self.count = len(rooms)
+    log.debug(u'Found %s rooms' % self.count)
+
+    for room in rooms:
+      roomsDict.append(self._parse_room_properties(room))
+
+    return roomsDict
+
+  def _parse_room_properties(self, response):
+    property_map = {
+      u'name': {
+        u'xpath': u't:Id/t:Name',
+      },
+      u'email':
+      {
+        u'xpath': u't:Id/t:EmailAddress',
+      },
+      u'routingType': {
+        u'xpath': u't:Id/t:RoutingType',
+      },
+      u'mailboxType': {
+        u'xpath': u't:Id/t:MailboxType',
+      },
+    }
+
+    return self.service._xpath_to_dict(element=response, property_map=property_map, namespace_map=soap_request.NAMESPACES)
 
 
 class Exchange2010CalendarEventList(object):
@@ -769,7 +866,6 @@ class Exchange2010FolderService(BaseExchangeFolderService):
         for folder in folders:
           folder.delete()
     """
-
     body = soap_request.find_folder(parent_id=parent_id, format=u'AllProperties')
     response_xml = self.service.send(body)
     return self._parse_response_for_find_folder(response_xml)

@@ -117,6 +117,10 @@ class Test_PopulatingANewEvent(unittest.TestCase):
     assert event.resources[0].email == RESOURCE.email
     assert event.conference_room.email == RESOURCE.email
 
+  def test_can_add_delegate(self):
+    event = self.calendar.event(delegate_for=TEST_EVENT.delegate_for)
+    assert event.delegate_for == TEST_EVENT.delegate_for
+
 
 class Test_CreatingANewEvent(unittest.TestCase):
   service = None
@@ -322,5 +326,19 @@ class Test_CreatingANewEvent(unittest.TestCase):
     new_event = pickle.loads(pickled_event)
 
     assert new_event.subject == "events can be pickled"
+
+  @httprettified
+  def test_delegate_for(self):
+
+    HTTPretty.register_uri(
+      HTTPretty.POST, FAKE_EXCHANGE_URL,
+      body=CREATE_ITEM_RESPONSE.encode('utf-8'),
+      content_type='text/xml; charset=utf-8',
+    )
+
+    self.event.delegate_for = RESOURCE.email
+    self.event.create()
+
+    assert RESOURCE.email in HTTPretty.last_request.body.decode('utf-8')
 
 
