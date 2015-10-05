@@ -32,6 +32,7 @@ DISTINGUISHED_IDS = (
 def exchange_header():
   return T.RequestServerVersion({u'Version': u'Exchange2010'})
 
+
 def resource_node(element, resources):
   """
   Helper function to generate a person/conference room node from an email address
@@ -114,8 +115,10 @@ def get_item(exchange_id, format=u"Default"):
   )
   return root
 
+
 def get_room_lists():
   return M.GetRoomLists()
+
 
 def get_rooms(roomList_email):
   """
@@ -131,6 +134,7 @@ def get_rooms(roomList_email):
           )
         )
   return root
+
 
 def get_calendar_items(format=u"Default", calendar_id=u'calendar', start=None, end=None, max_entries=999999, delegate_for=None):
   start = start.strftime(EXCHANGE_DATETIME_FORMAT)
@@ -361,7 +365,7 @@ def new_event(event):
     except AttributeError:
       id = T.DistinguishedFolderId(Id=event.calendar_id)
   else:
-    id =  T.FolderId(Id=event.calendar_id)
+    id = T.FolderId(Id=event.calendar_id)
 
   start = convert_datetime_to_utc(event.start)
   end = convert_datetime_to_utc(event.end)

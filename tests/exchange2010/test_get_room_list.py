@@ -6,7 +6,6 @@ Unless required by applicable law or agreed to in writing, software?distributed 
 """
 import unittest
 import httpretty
-from pytest import raises
 from pyexchange import Exchange2010Service
 from pyexchange.connection import ExchangeNTLMAuthConnection
 from pyexchange.exceptions import *

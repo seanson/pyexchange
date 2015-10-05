@@ -14,7 +14,7 @@ from pyexchange.exchange2010.soap_request import EXCHANGE_DATE_FORMAT, EXCHANGE_
 # don't remove this - a few tests import stuff this way
 from ..fixtures import *  # noqa
 
-EventFixture = namedtuple('EventFixture', ['id', 'change_key', 'calendar_id', 'subject', 'location', 'start', 'end', 'body','delegate_for'])
+EventFixture = namedtuple('EventFixture', ['id', 'change_key', 'calendar_id', 'subject', 'location', 'start', 'end', 'body', 'delegate_for'])
 RecurringEventDailyFixture = namedtuple(
   'RecurringEventDailyFixture',
   [
@@ -62,7 +62,7 @@ TEST_ROOM_LIST = [RoomListFixture(
    mailboxType=u"PublicDL",
 )]
 
-RoomFixture = namedtuple('RoomFixture', ['email','name','routingType','mailboxType'])
+RoomFixture = namedtuple('RoomFixture', ['email', 'name', 'routingType', 'mailboxType'])
 
 TEST_ROOM = RoomFixture(
    name=u"Storm room",
@@ -105,8 +105,7 @@ TEST_EVENT_UPDATED = EventFixture(id=u'AABBCCDDEEFF',
                                   start=datetime(year=2040, month=4, day=19, hour=19, minute=41, second=49, tzinfo=utc),
                                   end=datetime(year=2060, month=4, day=19, hour=20, minute=42, second=50, tzinfo=utc),
                                   body=u'śő śhíńý śő véŕý śhíńý',
-                                  delegate_for=u"storm@contoso.com",
-                                )
+                                  delegate_for=u"storm@contoso.com")
 
 TEST_EVENT_MOVED = EventFixture(
   id=u'AABBCCDDEEFFAABBCCDDEEFF',
@@ -1744,13 +1743,13 @@ LIST_EVENTS_RESPONSE = u"""<s:Envelope xmlns:s="http://schemas.xmlsoap.org/soap/
 GET_ROOM_LIST_RESPONSE = u"""<?xml version="1.0" encoding="utf-8"?>
   <s:Envelope xmlns:s="http://schemas.xmlsoap.org/soap/envelope/">
     <s:Header>
-      <h:ServerVersionInfo MajorVersion="15" MinorVersion="0" MajorBuildNumber="868" MinorBuildNumber="8" Version="V2_9" 
-                           xmlns:h="http://schemas.microsoft.com/exchange/services/2006/types" 
-                           xmlns="http://schemas.microsoft.com/exchange/services/2006/types" 
+      <h:ServerVersionInfo MajorVersion="15" MinorVersion="0" MajorBuildNumber="868" MinorBuildNumber="8" Version="V2_9"
+                           xmlns:h="http://schemas.microsoft.com/exchange/services/2006/types"
+                           xmlns="http://schemas.microsoft.com/exchange/services/2006/types"
                            xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" />
     </s:Header>
     <s:Body xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
-      <m:GetRoomListsResponse ResponseClass="Success" xmlns:m="http://schemas.microsoft.com/exchange/services/2006/messages" 
+      <m:GetRoomListsResponse ResponseClass="Success" xmlns:m="http://schemas.microsoft.com/exchange/services/2006/messages"
                               xmlns:t="http://schemas.microsoft.com/exchange/services/2006/types">
         <m:ResponseCode>NoError</m:ResponseCode>
         <m:RoomLists>

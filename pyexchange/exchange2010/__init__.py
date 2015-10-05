@@ -82,6 +82,7 @@ class Exchange2010Service(ExchangeServiceSOAP):
       elif code.text != u"NoError":
         raise FailedExchangeException(u"Exchange Fault (%s) from Exchange server" % code.text)
 
+
 class Exchange2010RoomService(object):
   def __init__(self, service):
     self.service = service
