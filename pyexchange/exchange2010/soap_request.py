@@ -116,6 +116,21 @@ def get_item(exchange_id, format=u"Default"):
   return root
 
 
+def resolve_names(user_email):
+  """
+  <m:ResolveNames xmlns="http://schemas.microsoft.com/exchange/services/2006/messages"
+                  xmlns:t="http://schemas.microsoft.com/exchange/services/2006/types">
+    <t:UnresolvedEntry>user@contoso.com</t:UnresolvedEntry>
+  <m:ResolveNames>
+  """
+  root = M.ResolveNames (
+          {u'ReturnFullContactData': u'true'},
+          M.UnresolvedEntry(user_email)
+        )
+
+  return root
+
+
 def get_room_lists():
   return M.GetRoomLists()
 

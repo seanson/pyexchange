@@ -31,7 +31,7 @@ class Exchange2010Service(ExchangeServiceSOAP):
     raise NotImplementedError("Sorry - nothin' here. Feel like adding it? :)")
 
   def contacts(self):
-    raise NotImplementedError("Sorry - nothin' here. Feel like adding it? :)")
+    return Exchange2010ContactsService(service=self)
 
   def folder(self):
     return Exchange2010FolderService(service=self)
@@ -94,6 +94,14 @@ class Exchange2010RoomService(object):
     return Exchange2010Rooms(service=self.service, roomList_email=roomList_email)
 
 
+class Exchange2010ContactsService(object):
+  def __init__(self, service):
+    self.service = service
+
+  def search_contacts(self, search_key):
+    return Exchange2010Contacts(service=self.service, search_key=search_key)
+
+
 class Exchange2010CalendarService(BaseExchangeCalendarService):
 
   def event(self, id=None, **kwargs):
@@ -148,6 +156,54 @@ class Exchange2010RoomList(object):
         u'xpath': u't:MailboxType',
       },
     }
+    return self.service._xpath_to_dict(element=response, property_map=property_map, namespace_map=soap_request.NAMESPACES)
+
+
+class Exchange2010Contacts(object):
+  def __init__(self, service, search_key):
+    self.service = service
+    body = soap_request.resolve_names(search_key)
+    log.debug("Searching contacts %s " % search_key)
+    response_xml = self.service.send(body)
+
+    self.contacts = self._parse_all_contacts(response_xml)
+
+    return
+
+  def _parse_all_contacts(self, response):
+    contactsDict = list()
+    contacts = response.xpath(u'//m:ResolveNamesResponseMessage/m:ResolutionSet/t:Resolution', namespaces=soap_request.NAMESPACES)
+    self.count = len(contacts)
+    log.debug(u'Found %s contacts' % self.count)
+
+    for contact in contacts:
+      contactsDict.append(self._parse_contact_properties(contact))
+
+    return contactsDict
+
+  def _parse_contact_properties(self, response):
+    property_map = {
+      u'name': {
+        u'xpath': u't:Mailbox/t:Name',
+      },
+      u'displayName': {
+        u'xpath': u't:Contact/t:DisplayName',
+      },
+      u'source': {
+        u'xpath': u't:Contact/t:ContactSource',
+      },
+      u'email':
+      {
+        u'xpath': u't:Mailbox/t:EmailAddress',
+      },
+      u'routingType': {
+        u'xpath': u't:Mailbox/t:RoutingType',
+      },
+      u'mailboxType': {
+        u'xpath': u't:Mailbox/t:MailboxType',
+      },
+    }
+
     return self.service._xpath_to_dict(element=response, property_map=property_map, namespace_map=soap_request.NAMESPACES)
 
 

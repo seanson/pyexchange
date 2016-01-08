@@ -71,6 +71,17 @@ TEST_ROOM = RoomFixture(
    mailboxType=u"Mailbox",
 )
 
+ContactFixture = namedtuple('ContactFixture', ['email', 'name', 'displayName', 'contactSource', 'routingType', 'mailboxType'])
+
+TEST_CONTACT = ContactFixture(
+  email=u"User2@example.com",
+  name=u"User2",
+  displayName=u"User2",
+  contactSource=u"ActiveDirectory",
+  routingType=u"SMTP",
+  mailboxType=u"Mailbox",
+  )
+
 TEST_EVENT = EventFixture(id=u'AABBCCDDEEFF',
                           change_key=u'GGHHIIJJKKLLMM',
                           calendar_id='calendar',
@@ -1812,3 +1823,65 @@ GET_ROOMS_IN_ROOM_LIST_ERROR_RESPONSE = u"""<?xml version="1.0" encoding="utf-8"
       </GetRoomsResponse>
     </s:Body>
   </s:Envelope>"""
+
+GET_CONTACTS_IN_CONTACTS_SEARCH = u"""<?xml version="1.0" encoding="utf-8" ?>
+<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/" 
+               xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+               xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <soap:Header>
+    <t:ServerVersionInfo MajorVersion="8" MinorVersion="0" MajorBuildNumber="685" MinorBuildNumber="8" 
+                         xmlns:t="http://schemas.microsoft.com/exchange/services/2006/types" />
+  </soap:Header>
+  <soap:Body>
+    <ResolveNamesResponse xmlns:m="http://schemas.microsoft.com/exchange/services/2006/messages" 
+                          xmlns:t="http://schemas.microsoft.com/exchange/services/2006/types" 
+                          xmlns="http://schemas.microsoft.com/exchange/services/2006/messages">
+      <m:ResponseMessages>
+        <m:ResolveNamesResponseMessage ResponseClass="Success">
+          <m:ResponseCode>NoError</m:ResponseCode>
+          <m:ResolutionSet TotalItemsInView="1" IncludesLastItemInRange="true">
+            <t:Resolution>
+              <t:Mailbox>
+                <t:Name>User2</t:Name>
+                <t:EmailAddress>User2@example.com</t:EmailAddress>
+                <t:RoutingType>SMTP</t:RoutingType>
+                <t:MailboxType>Mailbox</t:MailboxType>
+              </t:Mailbox>
+              <t:Contact>
+                <t:DisplayName>User2</t:DisplayName>
+                <t:EmailAddresses>
+                  <t:Entry Key="EmailAddress1">SMTP:User2@example.com</t:Entry>
+                </t:EmailAddresses>
+                <t:ContactSource>ActiveDirectory</t:ContactSource>
+              </t:Contact>
+            </t:Resolution>
+          </m:ResolutionSet>
+        </m:ResolveNamesResponseMessage>
+      </m:ResponseMessages>
+    </ResolveNamesResponse>
+  </soap:Body>
+</soap:Envelope>"""
+
+
+GET_CONTACTS_IN_CONTACTS_SEARCH_ERROR_RESPONSE = u"""<?xml version="1.0" encoding="utf-8" ?>
+<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/" 
+               xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+               xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <soap:Header>
+    <t:ServerVersionInfo MajorVersion="8" MinorVersion="0" MajorBuildNumber="685" MinorBuildNumber="8" 
+                         xmlns:t="http://schemas.microsoft.com/exchange/services/2006/types" />
+  </soap:Header>
+  <soap:Body>
+    <ResolveNamesResponse xmlns:m="http://schemas.microsoft.com/exchange/services/2006/messages" 
+                          xmlns:t="http://schemas.microsoft.com/exchange/services/2006/types" 
+                          xmlns="http://schemas.microsoft.com/exchange/services/2006/messages">
+      <m:ResponseMessages>
+        <m:ResolveNamesResponseMessage ResponseClass="Error">
+          <m:MessageText>No results were found.</m:MessageText>
+          <m:ResponseCode>ErrorNameResolutionNoResults</m:ResponseCode>
+          <m:DescriptiveLinkKey>0</m:DescriptiveLinkKey>
+        </m:ResolveNamesResponseMessage>
+      </m:ResponseMessages>
+    </ResolveNamesResponse>
+  </soap:Body>
+</soap:Envelope>"""
