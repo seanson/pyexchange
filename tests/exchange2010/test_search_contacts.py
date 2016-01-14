@@ -38,34 +38,34 @@ class Test_ParseSearchedContacts(unittest.TestCase):
       )
 
       return cls.service.contacts().search_contacts(TEST_CONTACT.name)
-
+    
     cls.contacts = fake_contact_request()
 
   def test_canary(self):
     assert self.contacts is not None
 
   def test_contact_has_an_email(self):
-    for contact in self.contacts:
+    for contact in self.contacts.contacts:
         assert contact.get('email') == TEST_CONTACT.email
 
   def test_contact_has_a_name(self):
-    for contact in self.contacts:
+    for contact in self.contacts.contacts:
         assert contact.get('name') == TEST_CONTACT.name
 
   def test_contact_has_a_displayName(self):
-    for contact in self.contacts:
+    for contact in self.contacts.contacts:
         assert contact.get('displayName') == TEST_CONTACT.displayName
 
   def test_contact_has_a_contactSource(self):
-    for contact in self.contacts:
+    for contact in self.contacts.contacts:
         assert contact.get('contactSource') == TEST_CONTACT.contactSource
 
   def test_contact_has_a_mailboxType(self):
-    for contact in self.contacts:
+    for contact in self.contacts.contacts:
         assert contact.get('mailboxType') == TEST_CONTACT.mailboxType
 
   def test_contact_has_a_routingType(self):
-    for contact in self.contacts:
+    for contact in self.contacts.contacts:
         assert contact.get('routingType') == TEST_CONTACT.routingType
 
   @httpretty.activate

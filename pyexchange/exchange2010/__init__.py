@@ -189,7 +189,7 @@ class Exchange2010Contacts(object):
       u'displayName': {
         u'xpath': u't:Contact/t:DisplayName',
       },
-      u'source': {
+      u'contactSource': {
         u'xpath': u't:Contact/t:ContactSource',
       },
       u'email':
