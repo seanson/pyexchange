@@ -6,4 +6,5 @@ Unless required by applicable law or agreed to in writing, software?distributed 
 """
 FAKE_EXCHANGE_URL = u'http://10.0.0.0/nothing'
 FAKE_EXCHANGE_USERNAME = u'FAKEDOMAIN\\nobody'
+FAKE_EXCHANGE_USERNAME_BASIC_AUTH = u'fake@fake-email.com'
 FAKE_EXCHANGE_PASSWORD = u'totallyfake'
