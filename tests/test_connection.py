@@ -103,7 +103,7 @@ def test_connection_is_cached_basic_auth():
     connection.send("test again")
 
     # assert we only get called once, after that it's cached
-    manager.MockHttpBasicAuth.assert_called_once_with(FAKE_EXCHANGE_USERNAME, FAKE_EXCHANGE_PASSWORD)
+    manager.MockHttpBasicAuth.assert_called_once_with(FAKE_EXCHANGE_USERNAME_BASIC_AUTH, FAKE_EXCHANGE_PASSWORD)
 
 @httpretty.activate
 def test_session_is_cached():
