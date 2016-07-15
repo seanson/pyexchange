@@ -16,14 +16,13 @@ from . import soap_request
 
 from lxml import etree
 from copy import deepcopy
-from datetime import date
+from datetime import date, datetime
 import warnings
 
 log = logging.getLogger("pyexchange")
 
 
 class Exchange2010Service(ExchangeServiceSOAP):
-
   def calendar(self, id="calendar"):
     return Exchange2010CalendarService(service=self, calendar_id=id)
 
@@ -38,6 +37,7 @@ class Exchange2010Service(ExchangeServiceSOAP):
 
   def rooms(self):
     return Exchange2010RoomService(service=self)
+
 
   def _send_soap_request(self, body, headers=None, retries=2, timeout=30, encoding="utf-8"):
     headers = {
@@ -100,6 +100,9 @@ class Exchange2010ContactsService(object):
 
   def search_contacts(self, search_key):
     return Exchange2010Contacts(service=self.service, search_key=search_key)
+
+  def check_availability(self, email, time_start, time_end):
+    return Exchange2010Availability(service=self.service, email=email, time_start=time_start, time_end=time_end)
 
 
 class Exchange2010CalendarService(BaseExchangeCalendarService):
@@ -205,6 +208,63 @@ class Exchange2010Contacts(object):
     }
 
     return self.service._xpath_to_dict(element=response, property_map=property_map, namespace_map=soap_request.NAMESPACES)
+
+
+class Exchange2010Availability(object):
+  def __init__(self, service, email, time_start, time_end):
+    self.service = service
+    body = soap_request.get_availability(email, time_start, time_end)
+    log.debug("Searching availability for %s from %s to %s" % (email, time_start, time_end))
+    response_xml = self.service.send(body)
+    self.busy_events = self._parse_all_availability(response_xml)
+    self.suggestions = self._parse_all_suggestions(response_xml)
+
+  def _parse_all_availability(self, response):
+    calendar_list = []
+    events = response.xpath(u'//m:GetUserAvailabilityResponse/m:FreeBusyResponseArray/m:FreeBusyResponse/m:FreeBusyView/t:CalendarEventArray/t:CalendarEvent', namespaces=soap_request.NAMESPACES)
+
+    for event in events:
+      calendar_list.append(self._parse_event_properties(event))
+    return calendar_list
+
+  def _parse_event_properties(self, response):
+    property_map = {
+      u'startTime': {
+        u'xpath': u't:StartTime',
+      },
+      u'endTime':
+      {
+        u'xpath': u't:EndTime',
+      },
+      u'busyType': {
+        u'xpath': u't:BusyType',
+      },
+    }
+
+    return self.service._xpath_to_dict(element=response, property_map=property_map, namespace_map=soap_request.NAMESPACES)
+
+  def _parse_all_suggestions(self, response):
+    suggestions = response.xpath(u'//m:GetUserAvailabilityResponse/m:SuggestionsResponse/m:SuggestionDayResultArray/t:SuggestionDayResult/t:SuggestionArray', namespaces=soap_request.NAMESPACES)
+    return [self._parse_suggest_properties(suggestion) for suggestion in suggestions]
+
+  def _parse_suggest_properties(self, response):
+    property_map = {
+      u'MeetingTime': {
+        u'xpath': u't:MeetingTime',
+      },
+      u'IsWorkTime':
+      {
+        u'xpath': u't:IsWorkTime',
+      },
+      u'SuggestionQuality': {
+        u'xpath': u't:SuggestionQuality',
+      },
+      u'AttendeeConflictDataArray': {
+        u'xpath': u't:AttendeeConflictDataArray',
+      },
+    }
+    return self.service._xpath_to_dict(element=response, property_map=property_map, namespace_map=soap_request.NAMESPACES)
+
 
 
 class Exchange2010Rooms(object):

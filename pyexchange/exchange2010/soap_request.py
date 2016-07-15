@@ -217,6 +217,99 @@ def get_master(exchange_id, format=u"Default"):
   )
   return root
 
+def get_availability(email_addresses, time_start, time_end, meeting_length='60'):
+  """
+
+  Requests the availability of a user by their email address.
+
+  <m:GetUserAvailabilityRequest>
+      <m:MailboxDataArray>
+        <t:MailboxData>
+          <t:Email>
+            <t:Address>mack@contoso.com</t:Address>
+          </t:Email>
+          <t:AttendeeType>Organizer</t:AttendeeType>
+          <t:ExcludeConflicts>false</t:ExcludeConflicts>
+        </t:MailboxData>
+        <t:MailboxData>
+          <t:Email>
+            <t:Address>sadie@contoso.com</t:Address>
+          </t:Email>
+          <t:AttendeeType>Required</t:AttendeeType>
+          <t:ExcludeConflicts>false</t:ExcludeConflicts>
+        </t:MailboxData>
+      </m:MailboxDataArray>
+      <t:FreeBusyViewOptions>
+        <t:TimeWindow>
+          <t:StartTime>2014-02-13T00:00:00</t:StartTime>
+          <t:EndTime>2014-02-14T00:00:00</t:EndTime>
+        </t:TimeWindow>
+        <t:MergedFreeBusyIntervalInMinutes>30</t:MergedFreeBusyIntervalInMinutes>
+        <t:RequestedView>FreeBusy</t:RequestedView>
+      </t:FreeBusyViewOptions>
+      <t:SuggestionsViewOptions>
+        <t:GoodThreshold>49</t:GoodThreshold>
+        <t:MaximumResultsByDay>2</t:MaximumResultsByDay>
+        <t:MaximumNonWorkHourResultsByDay>0</t:MaximumNonWorkHourResultsByDay>
+        <t:MeetingDurationInMinutes>60</t:MeetingDurationInMinutes>
+        <t:MinimumSuggestionQuality>Good</t:MinimumSuggestionQuality>
+        <t:DetailedSuggestionsWindow>
+          <t:StartTime>2014-02-13T00:00:00</t:StartTime>
+          <t:EndTime>2014-02-14T00:00:00</t:EndTime>
+        </t:DetailedSuggestionsWindow>
+      </t:SuggestionsViewOptions>
+    </m:GetUserAvailabilityRequest>
+  """
+  formatted_time_start = time_start.strftime(EXCHANGE_DATETIME_FORMAT)
+  formatted_time_end = time_end.strftime(EXCHANGE_DATETIME_FORMAT)
+  mailboxDataArray = M.MailboxDataArray()
+  for email in email_addresses:
+    mailboxDataArray.append(T.MailboxData(
+      T.Email(
+        T.Address(email),
+      ),
+      T.AttendeeType('Required'),
+      T.ExcludeConflicts('true')
+    ))
+  root = M.GetUserAvailabilityRequest(
+    T.TimeZone(
+      T.Bias('-600'),
+       T.StandardTime(
+          T.Bias('0'),
+          T.Time('02:00:00'),
+          T.DayOrder('1'),
+          T.Month('11'),
+          T.DayOfWeek('Sunday')),
+       T.DaylightTime(
+          T.Bias('0'),
+          T.Time('02:00:00'),
+          T.DayOrder('2'),
+          T.Month('3'),
+          T.DayOfWeek('Sunday'))
+    ),
+    mailboxDataArray,
+    T.FreeBusyViewOptions(
+      T.TimeWindow(
+        T.StartTime(formatted_time_start),
+        T.EndTime(formatted_time_end)
+      ),
+      T.MergedFreeBusyIntervalInMinutes('30'),
+      T.RequestedView('FreeBusy')
+    ),
+    T.SuggestionsViewOptions(
+      T.GoodThreshold('49'),
+      T.MaximumResultsByDay('2'),
+      T.MaximumNonWorkHourResultsByDay('0'),
+      T.MeetingDurationInMinutes(meeting_length),
+      T.MinimumSuggestionQuality('Good'),
+      T.DetailedSuggestionsWindow(
+        T.StartTime(formatted_time_start),
+        T.EndTime(formatted_time_end)
+      )
+    )
+  )
+
+  return root
 
 def get_occurrence(exchange_id, instance_index, format=u"Default"):
   """
